@@ -1,6 +1,8 @@
-jupyter
-tensorflow
+jupyterlab
+tensorflow[and-cuda]
 numpy
 matplotlib
 datasets
 pillow
+pandas
+scikit-learn
