@@ -1,2 +1,40 @@
-venv
-.venv
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# Model Binary Artifacts (tracked via GitHub Releases instead of git commits)
+models/*.keras
+models/*.tflite
+models/*.h5
+models/*.pb
+models/*.onnx
+*.keras
+*.tflite
+
+# Release & Build Artifacts
+dist/
+release_assets/
+build/
+*.egg-info/
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Logs & temp files
+*.log
+test_release_assets/
+release_body.md
