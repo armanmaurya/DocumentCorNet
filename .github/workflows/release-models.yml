@@ -7,12 +7,12 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Release version tag (e.g., v1.0.0 or v2). If empty, current tag/ref is used.'
+        description: 'Release version tag (e.g., v1.0.0 or v2)'
         required: false
         type: string
         default: ''
       release_title:
-        description: 'Release title (defaults to "DocCornerNet Model Release <tag>")'
+        description: 'Release title'
         required: false
         type: string
         default: ''
@@ -44,12 +44,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          lfs: true
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
 
       - name: Determine Version Tag and Title
         id: meta
@@ -70,26 +64,33 @@ jobs:
             TITLE="DocCornerNet Model Release ${TAG}"
           fi
 
-          echo "Using release tag: ${TAG}"
-          echo "Using release title: ${TITLE}"
-
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "title=${TITLE}" >> "$GITHUB_OUTPUT"
 
-      - name: Prepare Release Assets & Manifest
+      - name: Package Release Assets & Checksums
+        shell: bash
         run: |
-          python3 .github/scripts/prepare_release.py \
-            --tag "${{ steps.meta.outputs.tag }}" \
-            --models-dir "models" \
-            --output-dir "release_assets" \
-            --body-output "release_body.md"
+          TAG="${{ steps.meta.outputs.tag }}"
+          mkdir -p release_assets
+
+          # Copy artifacts from models/ if present
+          if [ -d "models" ] && [ -n "$(ls -A models 2>/dev/null)" ]; then
+            cp -r models/* release_assets/
+          fi
+
+          # Create bundled zip archive
+          cd release_assets
+          zip -r "doccornernet-models-${TAG}.zip" * -x "SHA256SUMS.txt" || true
+
+          # Generate SHA-256 checksums manifest
+          sha256sum * > SHA256SUMS.txt 2>/dev/null || true
+          cd ..
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.meta.outputs.tag }}
           name: ${{ steps.meta.outputs.title }}
-          body_path: release_body.md
           draft: ${{ github.event.inputs.draft || false }}
           prerelease: ${{ github.event.inputs.prerelease || false }}
           generate_release_notes: true
